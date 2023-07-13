@@ -38,7 +38,8 @@ func main() {
 	cxM = context.TODO()
 	mongoInfo := fmt.Sprintf("mongodb://%s:%s",modules.MapConfig["mongoDBHost"],modules.MapConfig["mongoDBPort"])
 	opts := options.Client().ApplyURI(mongoInfo)
-	dbM, errM = mongo.Connect(cxM, opts)
+	opts2 := options.Client().SetMaxPoolSize(50)
+	dbM, errM = mongo.Connect(cxM, opts, opts2)
 	if errM != nil {
 		panic(errM)
 	}
