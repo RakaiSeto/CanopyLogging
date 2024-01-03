@@ -5,17 +5,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	_ "github.com/lib/pq"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"io/ioutil"
+	"io"
+	// "io/ioutil"
 	"log"
 	"molog/modules"
 	"net/http"
 	"runtime"
 	"strings"
 	"time"
+
+	_ "github.com/lib/pq"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var dbM *mongo.Client
@@ -29,7 +31,7 @@ func GetIPAddress(incRemoteAddress string) string {
 
 func main() {
 	// Load configuration file
-	modules.InitiateGlobalVariables(true)
+	modules.InitiateGlobalVariables(false)
 	runtime.GOMAXPROCS(4)
 
 	// Mongo Log Database
@@ -63,7 +65,7 @@ func main() {
 		incURL := fmt.Sprintf("%s", r.URL)[1:]
 
 		if r.Body != nil && r.Method == "POST" {
-			bodyBytes, _ = ioutil.ReadAll(r.Body)
+			bodyBytes, _ = io.ReadAll(r.Body)
 
 			//fmt.Println(bodyBytes)
 			var incomingBody string
@@ -73,7 +75,7 @@ func main() {
 			incomingBody = strings.Replace(incomingBody, "\r", "", -1)
 
 			// Write back the buffer to Body context, so it can be used by later process
-			r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 			strDateTime := modules.DoFormatDateTime("YYYY-0M-0D HH:mm:ss.S", time.Now())
 			//remoteIPAddress := GetIPAddress(r.RemoteAddr)

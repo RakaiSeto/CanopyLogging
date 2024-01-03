@@ -5,9 +5,15 @@ func LoadConfig() map[string]string {
 
 
 	// Local
-	mapConfig["mongoDBHost"] = "localhost"
+	mapConfig["mongoDBHost"] = "172.31.4.168"
 	mapConfig["mongoDBPort"] = "27017"
 	mapConfig["logEndpoint"] = "http://localhost:55555/log"
+
+	mapConfig["rabbitHost"] = "172.31.3.176"
+	mapConfig["rabbitPort"] = "5672"
+	mapConfig["rabbitUser"] = "monpark"
+	mapConfig["rabbitPass"] = "CakepBanget123!"
+	mapConfig["rabbitVHost"] = "MONETA"
 
 	return mapConfig
 }
