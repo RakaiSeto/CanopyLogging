@@ -156,16 +156,9 @@ var zapLogger *zap.Logger
 // Global RedisPooler for All
 var RedisPooler *redis.Pool
 
-func InitiateGlobalVariables(incProductionStatus bool) {
-	if incProductionStatus {
-		MapConfig = LoadConfigProduction()
-		zapLogger = initiateZapLogger()
-		RedisPooler = RedisInitiateRedisPool()
-	} else {
-		MapConfig = LoadConfig()
-		zapLogger = initiateZapLogger()
-		RedisPooler = RedisInitiateRedisPool()
-	}
+func InitiateGlobalVariables() {
+	MapConfig = LoadConfig()
+	zapLogger = initiateZapLogger()
 }
 
 func SyslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {

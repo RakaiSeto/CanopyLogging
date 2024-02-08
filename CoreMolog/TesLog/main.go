@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
+	"canopyLogging/modules"
 	"errors"
 	"fmt"
 	"io"
 	"log"
-	"molog/modules"
 	"net/http"
 	"runtime"
 	"strings"
@@ -70,7 +70,7 @@ func doSubmitToQueue(chIncoming *amqp.Channel, datetime string, loglevel string,
 				Body:         []byte(jsonMessage),
 			})
 	} else {
-		modules.DoLog("DEBUG", traceid, "MOLOG", "Submit to Queue",
+		modules.DoLog("DEBUG", traceid, "canopyLogging", "Submit to Queue",
 			"Successfully to publish to SMS INCOMING Queue " + queueLog, false, nil)
 	}
 	chIncoming.Close()
@@ -84,17 +84,17 @@ func GetIPAddress(incRemoteAddress string) string {
 
 func main() {
 	// Load configuration file
-	modules.InitiateGlobalVariables(false)
+	modules.InitiateGlobalVariables()
 	runtime.GOMAXPROCS(4)
 
 	// Initiate RabbitMQ
 	var errRabbit error
 	connRabbit, errRabbit = amqp.Dial("amqp://" + modules.MapConfig["rabbitUser"] + ":" + modules.MapConfig["rabbitPass"] + "@" + modules.MapConfig["rabbitHost"] + ":" + modules.MapConfig["rabbitPort"] + "/" + modules.MapConfig["rabbitVHost"])
 	if errRabbit != nil {
-		modules.DoLog("INFO", "", "SMPP20", "main",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "main",
 			"Failed to connect to RabbitMQ server. Error", true, errRabbit)
 	} else {
-		modules.DoLog("INFO", "", "SMPP20", "main",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "main",
 			"Success to connect to RabbitMQ server.", false, nil)
 	}
 	defer connRabbit.Close()

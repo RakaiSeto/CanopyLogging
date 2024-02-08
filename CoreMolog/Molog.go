@@ -6,9 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
 	// "io/ioutil"
+	"canopyLogging/modules"
 	"log"
-	"molog/modules"
 	"net/http"
 	"runtime"
 	"strings"
@@ -31,14 +32,14 @@ func GetIPAddress(incRemoteAddress string) string {
 
 func main() {
 	// Load configuration file
-	modules.InitiateGlobalVariables(false)
+	modules.InitiateGlobalVariables()
 	runtime.GOMAXPROCS(4)
 
 	// Mongo Log Database
 	var errM error
 	var errM1 error
 	cxM = context.TODO()
-	mongoInfo := fmt.Sprintf("mongodb://%s:%s",modules.MapConfig["mongoDBHost"],modules.MapConfig["mongoDBPort"])
+	mongoInfo := fmt.Sprintf("mongodb://%s:%s@%s:%s", modules.MapConfig["mongoUser"], modules.MapConfig["mongoPassword"], modules.MapConfig["mongoHost"],modules.MapConfig["mongoPort"])
 	opts := options.Client().ApplyURI(mongoInfo)
 	opts2 := options.Client().SetMaxPoolSize(50)
 	dbM, errM = mongo.Connect(cxM, opts, opts2)

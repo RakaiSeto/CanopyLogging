@@ -1,20 +1,21 @@
 package main
 
 import (
+	"canopyLogging/modules"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/streadway/amqp"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.uber.org/ratelimit"
-	"molog/modules"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.uber.org/ratelimit"
 )
 
 type logData struct {
@@ -116,7 +117,7 @@ func processQueue() {
 	)
 
 	if errIncomingMitracomm != nil {
-		modules.DoLog("INFO", "", "Transceiver9POINTS", "processQueue",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "processQueue",
 			"Failed to connect to queue "+queueLog+". Error occured.", true, errIncomingMitracomm)
 
 		panic(errIncomingMitracomm)
@@ -124,7 +125,7 @@ func processQueue() {
 
 	errQ := channelLog.Qos(qosCount, 0, false)
 	if errQ != nil {
-		modules.DoLog("INFO", "", "Transceiver9POINTS", "processQueue",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "processQueue",
 			"Failed to make rabbitmq QOS to "+strconv.Itoa(qosCount), true, errQ)
 
 		panic(errQ)
@@ -141,17 +142,17 @@ func processQueue() {
 		nil,                           // args
 	)
 	if err != nil {
-		modules.DoLog("INFO", "", "Transceiver9POINTS", "processQueue",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "processQueue",
 			"Failed to consume queue "+queueLog+". Error occured.", true, err)
 	} else {
 		forever := make(chan bool)
 
 		for d := range messageTransmitter {
-			modules.DoLog("INFO", "", "Transceiver9POINTS", "processQueue",
+			modules.DoLog("INFO", "LOG SERVER", "DOLOG", "processQueue",
 				"Receiving message: "+string(d.Body), false, nil)
 
 			// do the process with rateLimit transaction per second
-			modules.DoLog("INFO", "", "Transceiver9POINTS", "processQueue",
+			modules.DoLog("INFO", "LOG SERVER", "DOLOG", "processQueue",
 				"Do processing the incoming message from queue "+queueLog, false, nil)
 			theRateLimit.Take()
 			theRateLimit.Take()
@@ -165,13 +166,13 @@ func processQueue() {
 			errx := d.Ack(false)
 
 			if errx != nil {
-				modules.DoLog("DEBUG", "", "Transceiver9POINTS", "readQueue",
+				modules.DoLog("DEBUG", "LOG SERVER", "DOLOG", "readQueue",
 					"Failed to acknowledge manually message: "+string(d.Body)+". STOP the transceiver.", false, nil)
 
 				os.Exit(-1)
 			}
 
-			modules.DoLog("DEBUG", "", "Transceiver9POINTS", "readQueue",
+			modules.DoLog("DEBUG", "LOG SERVER", "DOLOG", "readQueue",
 				"Done Processing queue message "+string(d.Body)+". Sending ack to rabbitmq.", false, nil)
 		}
 
@@ -185,7 +186,7 @@ func startReceiver() {
 	var errI error
 	channelLog, errI = connRabbit.Channel()
 	if errI != nil {
-		modules.DoLog("INFO", "", "Transceiver9POINTS", "doConnect",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "doConnect",
 			"Failed to create channel to rabbitmq to read incoming queue: "+queueLog, true, errI)
 
 		panic(errI)
@@ -200,13 +201,13 @@ func startReceiver() {
 			theCheckedQueue, errC := channelLog.QueueInspect(queueLog)
 
 			if errC != nil {
-				modules.DoLog("INFO", "", "Transceiver9POINTS", "doConnect",
+				modules.DoLog("INFO", "LOG SERVER", "DOLOG", "doConnect",
 					"Checking queue status "+queueLog+" is failed for error. DO RE-INITIATE INCOMING CHANNEL.", true, errC)
 
 				channelLog, _ = connRabbit.Channel()
 			} else {
 				if theCheckedQueue.Consumers == 0 {
-					modules.DoLog("INFO", "", "Transceiver9POINTS", "doConnect",
+					modules.DoLog("INFO", "LOG SERVER", "DOLOG", "doConnect",
 						"Consumer of the incoming queue: "+queueLog+" is 0. DO RE-INITIATE RABBITMQ CHANNEL.", false, nil)
 
 					channelLog, _ = connRabbit.Channel()
@@ -227,14 +228,14 @@ func startReceiver() {
 
 func main() {
 	// Load configuration file
-	modules.InitiateGlobalVariables(false)
+	modules.InitiateGlobalVariables()
 	runtime.GOMAXPROCS(4)
 
 	// Mongo Log Database
 	var errM error
 	var errM1 error
 	cxM = context.TODO()
-	mongoInfo := fmt.Sprintf("mongodb://%s:%s",modules.MapConfig["mongoDBHost"],modules.MapConfig["mongoDBPort"])
+	mongoInfo := fmt.Sprintf("mongodb://%s:%s@%s:%s", modules.MapConfig["mongoUser"], modules.MapConfig["mongoPassword"], modules.MapConfig["mongoHost"],modules.MapConfig["mongoPort"])
 	opts := options.Client().ApplyURI(mongoInfo)
 	opts1 := options.Client().SetMaxPoolSize(50)
 	opts2 := options.Client().SetMaxConnecting(10)
@@ -250,15 +251,15 @@ func main() {
 
 	// Initiate RabbitMQ
 	var errRabbit error
-	connRabbit, errRabbit = amqp.Dial("amqp://" + modules.MapConfig["rabbitUser"] + ":" + modules.MapConfig["rabbitPass"] + "@" + modules.MapConfig["rabbitHost"] + ":" + modules.MapConfig["rabbitPort"] + "/" + modules.MapConfig["rabbitVHost"])
+	connRabbit, errRabbit = amqp.Dial("amqp://" + modules.MapConfig["rabbitMqUser"] + ":" + modules.MapConfig["rabbitMqPassword"] + "@" + modules.MapConfig["rabbitMqHost"] + ":" + modules.MapConfig["rabbitMqPort"] + "/" + modules.MapConfig["rabbitMqVhost"])
+	fmt.Println("CONNECTING TO VHOST:", modules.MapConfig["rabbitMqVhost"])
 	if errRabbit != nil {
-		modules.DoLog("INFO", "", "SMPP20", "main",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "main",
 			"Failed to connect to RabbitMQ server. Error", true, errRabbit)
 	} else {
-		modules.DoLog("INFO", "", "SMPP20", "main",
+		modules.DoLog("INFO", "LOG SERVER", "DOLOG", "main",
 			"Success to connect to RabbitMQ server.", false, nil)
 	}
-
 
 	startReceiver()
 }

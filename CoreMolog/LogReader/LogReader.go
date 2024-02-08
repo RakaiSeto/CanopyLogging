@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
+	"canopyLogging/modules"
 	"context"
 	"fmt"
 	"io"
 	"log"
-	"molog/modules"
 	"net/http"
 	"runtime"
 	"strings"
@@ -147,7 +147,7 @@ func findByRemoteIP(incDatabase string, incCollection string, incRemoteIP string
 
 func main() {
 	// Load configuration file
-	modules.InitiateGlobalVariables(false)
+	modules.InitiateGlobalVariables()
 	runtime.GOMAXPROCS(4)
 
 	// Mongo Log Database
