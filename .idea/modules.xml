@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/MOLOG.iml" filepath="$PROJECT_DIR$/.idea/MOLOG.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/canopyLogging.iml" filepath="$PROJECT_DIR$/.idea/canopyLogging.iml" />
     </modules>
   </component>
 </project>

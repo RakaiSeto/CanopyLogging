@@ -2,10 +2,10 @@ package main
 
 import (
 	"bytes"
+	"canopyLogging/modules"
 	"errors"
 	"fmt"
 	"log"
-	"molog/modules"
 	"net/http"
 )
 
@@ -40,7 +40,7 @@ func HitLogPost(incTrace string, incApp string, incMod string, incFunc string, i
 
 
 func main() {
-	modules.InitiateGlobalVariables(false)
+	modules.InitiateGlobalVariables()
 
 	HitLogPost("ASSS", "monalisa", "RPC Admin", "Do Login", "Normal request", errors.New("error"))
 }

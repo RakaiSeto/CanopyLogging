@@ -1,3 +1,3 @@
-# Molog
+# canopyLogging
 
-Run file pada Folder CoreMolog file Molog.go
+Run file pada Folder CorecanopyLogging file canopyLogging.go

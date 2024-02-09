@@ -5,17 +5,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	_ "github.com/lib/pq"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"io/ioutil"
+	"io"
+
+	// "io/ioutil"
+	"canopyLogging/modules"
 	"log"
-	"molog/modules"
 	"net/http"
 	"runtime"
 	"strings"
 	"time"
+
+	_ "github.com/lib/pq"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var dbM *mongo.Client
@@ -29,16 +32,17 @@ func GetIPAddress(incRemoteAddress string) string {
 
 func main() {
 	// Load configuration file
-	modules.InitiateGlobalVariables(true)
+	modules.InitiateGlobalVariables()
 	runtime.GOMAXPROCS(4)
 
 	// Mongo Log Database
 	var errM error
 	var errM1 error
 	cxM = context.TODO()
-	mongoInfo := fmt.Sprintf("mongodb://%s:%s",modules.MapConfig["mongoDBHost"],modules.MapConfig["mongoDBPort"])
+	mongoInfo := fmt.Sprintf("mongodb://%s:%s@%s:%s", modules.MapConfig["mongoUser"], modules.MapConfig["mongoPassword"], modules.MapConfig["mongoHost"],modules.MapConfig["mongoPort"])
 	opts := options.Client().ApplyURI(mongoInfo)
-	dbM, errM = mongo.Connect(cxM, opts)
+	opts2 := options.Client().SetMaxPoolSize(50)
+	dbM, errM = mongo.Connect(cxM, opts, opts2)
 	if errM != nil {
 		panic(errM)
 	}
@@ -62,7 +66,7 @@ func main() {
 		incURL := fmt.Sprintf("%s", r.URL)[1:]
 
 		if r.Body != nil && r.Method == "POST" {
-			bodyBytes, _ = ioutil.ReadAll(r.Body)
+			bodyBytes, _ = io.ReadAll(r.Body)
 
 			//fmt.Println(bodyBytes)
 			var incomingBody string
@@ -72,7 +76,7 @@ func main() {
 			incomingBody = strings.Replace(incomingBody, "\r", "", -1)
 
 			// Write back the buffer to Body context, so it can be used by later process
-			r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 			strDateTime := modules.DoFormatDateTime("YYYY-0M-0D HH:mm:ss.S", time.Now())
 			//remoteIPAddress := GetIPAddress(r.RemoteAddr)
