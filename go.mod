@@ -10,6 +10,7 @@ require (
 	github.com/gomodule/redigo v1.8.9
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/vault-client-go v0.4.3
+	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.7
 	github.com/sirupsen/logrus v1.9.0
 	github.com/streadway/amqp v1.0.0

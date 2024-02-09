@@ -3,18 +3,25 @@ package modules
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/hashicorp/vault-client-go"
+	"github.com/joho/godotenv"
 )
 
 func LoadConfig() map[string]string {
 	ctx := context.Background()
 	mapConfig := make(map[string]string)
 
+	errEnv := godotenv.Load()
+	if errEnv != nil {
+		panic("Error loading .env file")
+	}
+
 	cl := initVaultClient()
 
-	err := cl.SetToken("hvs.CAESINmll07fOjkBAxz-rgCxtA6dV5OKZ9UJeQn_UDbVCHuCGh4KHGh2cy5zQ3BEc2QwZEhPeDN0dzZEaEFMNzRKa3o")
+	err := cl.SetToken(os.Getenv("VAULT_TOKEN"))
 	if err != nil {
 		fmt.Println("FAILED TO SET VAULT TOKEN")
 		panic(err)
